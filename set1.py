@@ -3,6 +3,9 @@ import base64
 import itertools
 import operator
 import math
+import os
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+from cryptography.hazmat.backends import default_backend
 
 ## Challenge 1
 def challenge1():
@@ -84,15 +87,15 @@ def hamming_distance(string1, string2):
 
 
 def determine_keysize(target):
-    possible_keys = []
+    possible_keysizes = []
     for keysize in range(2, 41):
-        target_split = [target[i:i+keysize] for i in range(0, keysize*4, keysize)]
+        target_split = [target[i:i + keysize] 
+                        for i in range(0, keysize*4, keysize)]
         combinations = itertools.combinations(target_split, 2)
         distances = list(itertools.starmap(hamming_distance, combinations))
         normalized_avg = sum(distances) / len(distances) / keysize
-        possible_keys.append((normalized_avg, keysize))
-    print(sorted(possible_keys))
-    return [keysize for (distance, keysize) in sorted(possible_keys)]
+        possible_keysizes.append((normalized_avg, keysize))
+    return [keysize for (distance, keysize) in sorted(possible_keysizes)]
 
 
 def challenge6():
@@ -101,21 +104,34 @@ def challenge6():
     string2 = b"wokka wokka!!!"
     print(hamming_distance(string1, string2))
     with open('6.txt', 'r+b') as file:
-        target = file.read()
-    target = base64.b64decode(target)
-    ordered_keys = determine_keysize(target)
+        encrypted_file = file.read()
+    encrypted_file = base64.b64decode(encrypted_file)
+    ordered_keys = determine_keysize(encrypted_file)
     likely_keysize = ordered_keys[0]
     divided_blocks = []
     for i in range(likely_keysize):
-        divided_blocks.append(target[i::likely_keysize])
+        divided_blocks.append(encrypted_file[i::likely_keysize])
     potential_key_list = []
     for block in divided_blocks:
         potential_key_list.append(best_unxor_char(block)[1])
     potential_key = bytes(potential_key_list)
-    result = repeating_key_xor(target, potential_key)
+    result = repeating_key_xor(encrypted_file, potential_key)
     print(potential_key.decode())
     print(result.decode())
 
+## Challenge 7
+def challenge7():
+    key = b"YELLOW SUBMARINE"
+    backend = default_backend()
+    iv = key
+    with open('7.txt') as file:
+        encrypted_file = file.read()
+    encrypted_file = base64.b64decode(encrypted_file)
+    cipher = Cipher(algorithms.AES(key), modes.ECB(), backend)
+    decryptor = cipher.decryptor()
+    decrypted = decryptor.update(encrypted_file) + decryptor.finalize()
+    print(decrypted.decode())
+
 
 if __name__ == '__main__':
-    challenge6()
+    challenge7()
