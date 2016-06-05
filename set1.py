@@ -3,7 +3,6 @@ import base64
 import itertools
 import operator
 import math
-import os
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.backends import default_backend
 
@@ -86,12 +85,12 @@ def hamming_distance(string1, string2):
     return sum(bin(x).count("1") for x in result)
 
 
-def determine_keysize(target):
+def determine_keysize(ciphertext):
     possible_keysizes = []
     for keysize in range(2, 41):
-        target_split = [target[i:i + keysize] 
+        text_split = [ciphertext[i:i + keysize] 
                         for i in range(0, keysize*4, keysize)]
-        combinations = itertools.combinations(target_split, 2)
+        combinations = itertools.combinations(text_split, 2)
         distances = list(itertools.starmap(hamming_distance, combinations))
         normalized_avg = sum(distances) / len(distances) / keysize
         possible_keysizes.append((normalized_avg, keysize))
@@ -99,23 +98,22 @@ def determine_keysize(target):
 
 
 def challenge6():
-    # validate hamming_distance()
     string1 = b"this is a test"
     string2 = b"wokka wokka!!!"
     print(hamming_distance(string1, string2))
     with open('6.txt', 'r+b') as file:
-        encrypted_file = file.read()
-    encrypted_file = base64.b64decode(encrypted_file)
-    ordered_keys = determine_keysize(encrypted_file)
+        ciphertext = file.read()
+    ciphertext = base64.b64decode(ciphertext)
+    ordered_keys = determine_keysize(ciphertext)
     likely_keysize = ordered_keys[0]
     divided_blocks = []
     for i in range(likely_keysize):
-        divided_blocks.append(encrypted_file[i::likely_keysize])
+        divided_blocks.append(ciphertext[i::likely_keysize])
     potential_key_list = []
     for block in divided_blocks:
         potential_key_list.append(best_unxor_char(block)[1])
     potential_key = bytes(potential_key_list)
-    result = repeating_key_xor(encrypted_file, potential_key)
+    result = repeating_key_xor(ciphertext, potential_key)
     print(potential_key.decode())
     print(result.decode())
 
@@ -125,13 +123,35 @@ def challenge7():
     backend = default_backend()
     iv = key
     with open('7.txt') as file:
-        encrypted_file = file.read()
-    encrypted_file = base64.b64decode(encrypted_file)
+        ciphertext = file.read()
+    ciphertext = base64.b64decode(ciphertext)
     cipher = Cipher(algorithms.AES(key), modes.ECB(), backend)
     decryptor = cipher.decryptor()
-    decrypted = decryptor.update(encrypted_file) + decryptor.finalize()
+    decrypted = decryptor.update(ciphertext) + decryptor.finalize()
     print(decrypted.decode())
+
+## Challenge 8
+def challenge8():
+    with open('8.txt') as file:
+        ciphertext_list = file.read().splitlines()
+    ciphertext_list = [binascii.unhexlify(ct) for ct in ciphertext_list]
+    # one solution, finding recurrences of an individual byte
+    matches = []
+    for ciphertext in ciphertext_list:
+        for byte in ciphertext:
+            if ciphertext.count(byte) > 5:
+                matches.append(ciphertext)
+    print(matches)
+    # another solution, finding duplicates of the same 16 byte block
+    matches2 = []
+    for ciphertext in ciphertext_list:
+        split_up = [ciphertext[i:i+16] for i in range(0, len(ciphertext), 16)]
+        for block in split_up:
+            if split_up.count(block) > 1:
+                matches2.append(ciphertext)
+                break
+    print(matches2)
 
 
 if __name__ == '__main__':
-    challenge7()
+    challenge8()
