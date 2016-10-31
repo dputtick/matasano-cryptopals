@@ -6,6 +6,7 @@ import math
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.backends import default_backend
 
+
 ## Challenge 1
 def challenge1():
     hexint = 0x49276d206b696c6c696e6720796f757220627261696e206c696b65206120706f69736f6e6f7573206d757368726f6f6d
@@ -142,7 +143,7 @@ def challenge8():
             if ciphertext.count(byte) > 5:
                 matches.append(ciphertext)
     print(matches)
-    # another solution, finding duplicates of the same 16 byte block
+    # alternative solution, finding duplicates of the same 16 byte block
     matches2 = []
     for ciphertext in ciphertext_list:
         split_up = [ciphertext[i:i+16] for i in range(0, len(ciphertext), 16)]
@@ -154,4 +155,4 @@ def challenge8():
 
 
 if __name__ == '__main__':
-    challenge8()
+    challenge1()

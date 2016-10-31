@@ -1,4 +1,7 @@
-## Challenge 9
+import cryptography
+
+
+# Challenge 9
 def challenge9():
     test = b"YELLOW SUBMARINE"
     print(pkcs7_pad(test, 16))
@@ -13,5 +16,9 @@ def pkcs7_pad(block, blocksize):
     return block + padding_string
 
 
+# Challenge 10
+def challenge10():
+    pass
+
 if __name__ == '__main__':
-    challenge9()
+    challenge10()

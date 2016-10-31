@@ -1,0 +1,1 @@
+These are my solutions to the Matasano/NCC Cryptopals [challenges](http://cryptopals.com). Don't read them if you have a desire to try the challenges themselves - a huge part of the learning is figuring things out when you're stuck!
